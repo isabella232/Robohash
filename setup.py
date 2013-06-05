@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="robohash",
-      version="0.0.1",
+      version="0.0.2",
       packages=["robohash"],
       entry_points={
         'console_scripts' :

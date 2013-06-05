@@ -26,6 +26,8 @@ import cStringIO
 
 define("port", default=80, help="run on the given port", type=int)
 
+import robohash
+
 class Robohash(object):
    def __init__(self,string):
        hash = hashlib.sha512()
@@ -53,12 +55,14 @@ class Robohash(object):
        #return the count of just the directories beneath me.
        return sum([len(dirs) for (root, dirs, files) in os.walk(path)])
 
-   def getHashList(self,path):
+   def getHashList(self,path_):
        #Each iteration, if we hit a directory, recurse
        #If not, choose the appropriate file, given the hashes, stored above
        
        completelist = []
        locallist = []
+       path = robohash.get_data(path_)
+       print "path, ", path
        listdir = os.listdir(path)
        listdir.sort()
        for ls in listdir:
@@ -371,35 +375,38 @@ class ImgHandler(tornado.web.RequestHandler):
         print "------"
         pprint.pprint(hashlist)
 
-        robohash = Image.open(hashlist[0])
-        robohash = robohash.resize((1024,1024))
+        rhash = Image.open(hashlist[0])
+        rhash = rhash.resize((1024,1024))
         for png in hashlist:
             img = Image.open(png) 
             img = img.resize((1024,1024))
-            robohash.paste(img,(0,0),img)
+            rhash.paste(img,(0,0),img)
         if ext == 'bmp':
             #Flatten bmps
-            r, g, b, a = robohash.split()
-            robohash = Image.merge("RGB", (r, g, b))
+            r, g, b, a = rhash.split()
+            rhash = Image.merge("RGB", (r, g, b))
         
         if client_bgset is not "":
             bglist = []
-            backgrounds = os.listdir(client_bgset)
+            path = robohash.get_data(client_bgset)
+            backgrounds = os.listdir(path)
             backgrounds.sort()
             for ls in backgrounds:
+                print "backgrounds ", ls
                 if not ls.startswith("."):
-                    bglist.append(client_bgset + "/" + ls)
+                    bglist.append(path + "/" + ls)
+            print "bglist, ", bglist
             bg = Image.open(bglist[r.hasharray[3] % len(bglist)])
             bg = bg.resize((1024,1024))
-            bg.paste(robohash,(0,0),robohash)
-            robohash = bg               
+            bg.paste(rhash,(0,0),rhash)
+            rhash = bg               
                            
-        robohash = robohash.resize((sizex,sizey),Image.ANTIALIAS)    
+        rhash = rhash.resize((sizex,sizey),Image.ANTIALIAS)    
         if ext != 'datauri':
-          robohash.save(self,format=ext)
+          rhash.save(self,format=ext)
         else:
           fakefile = cStringIO.StringIO()
-          robohash.save(fakefile,format='jpeg')
+          rhash.save(fakefile,format='jpeg')
           fakefile.seek(0)
           data_uri = fakefile.read().encode("base64").replace("\n", "")
           self.write("data:image/jpeg;base64," + data_uri)

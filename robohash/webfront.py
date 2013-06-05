@@ -62,7 +62,6 @@ class Robohash(object):
        completelist = []
        locallist = []
        path = robohash.get_data(path_)
-       print "path, ", path
        listdir = os.listdir(path)
        listdir.sort()
        for ls in listdir:
@@ -392,10 +391,8 @@ class ImgHandler(tornado.web.RequestHandler):
             backgrounds = os.listdir(path)
             backgrounds.sort()
             for ls in backgrounds:
-                print "backgrounds ", ls
                 if not ls.startswith("."):
                     bglist.append(path + "/" + ls)
-            print "bglist, ", bglist
             bg = Image.open(bglist[r.hasharray[3] % len(bglist)])
             bg = bg.resize((1024,1024))
             bg.paste(rhash,(0,0),rhash)
